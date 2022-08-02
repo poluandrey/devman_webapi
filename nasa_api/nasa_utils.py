@@ -1,4 +1,4 @@
-import datetime
+from datetime import date
 import posixpath
 import urllib.parse
 from collections import namedtuple
@@ -7,6 +7,9 @@ from typing import List, NamedTuple
 import requests
 
 from utils.download_image import download_image
+
+
+EpicDescr = namedtuple('EpicDescr', ['identifier', 'image'])
 
 
 def get_apod_url(url: str, api_key, **kwargs) -> List[str]:
@@ -33,18 +36,18 @@ def get_list_of_epic_img(url: str, token: str) -> List[NamedTuple]:
 
     imgs = []
     for img in resp.json():
-        date = img['identifier']
-        img_date = datetime.date.fromisoformat(f'{date[:4]}-{date[4:6]}-{date[6:8]}')
+        launch_date = img['identifier']
+        img_date = date.fromisoformat(
+            f'{launch_date[:4]}-{launch_date[4:6]}-{launch_date[6:8]}')
         descr = EpicDescr(img_date, img['image'])
         imgs.append(descr)
 
     return imgs
 
 
-EpicDescr = namedtuple('EpicDescr', ['identifier', 'image'])
-
-
-def download_epic_img(url: str, token, img_descr: List[EpicDescr], path) -> None:
+def download_epic_img(url: str,
+                      token,
+                      img_descr: List[EpicDescr], path) -> None:
     url = urllib.parse.urljoin(url, '/EPIC/archive/natural/')
     for img in img_descr:
         url_part = posixpath.join(img.identifier.strftime('%Y'),
@@ -54,4 +57,8 @@ def download_epic_img(url: str, token, img_descr: List[EpicDescr], path) -> None
                                   f'{img.image}.png')
         img_url = urllib.parse.urljoin(url, url_part)
 
-        download_image(img_url, path, file_name=f'{img.image}.png', nasa_token=token)
+        download_image(
+            img_url,
+            path,
+            file_name=f'{img.image}.png',
+            nasa_token=token)

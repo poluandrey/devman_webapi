@@ -8,11 +8,13 @@ from utils.download_image import download_image
 from utils.get_file_name_from_url import get_file_name_from_url
 
 
-def get_list_of_spacex_images(url: str) -> List[str]:
+def get_list_of_spacex_images_url(url: str) -> List[str]:
+    """get list of images url from launch"""
     resp = requests.get(url)
     resp.raise_for_status()
 
     resp_json = resp.json()
+    print(resp_json)
     try:
         pictures = resp_json['links']['flickr']['original']
     except KeyError:
@@ -20,14 +22,14 @@ def get_list_of_spacex_images(url: str) -> List[str]:
     return pictures
 
 
-def fetch_spacex_last_launch(url: str, directory: Path, **kwargs) -> None:
-    if 'latest' in kwargs:
-        url = urllib.parse.urljoin(url, 'latest')
+def fetch_spacex_launch(url: str, directory: Path, **kwargs) -> None:
+
     if 'id' in kwargs:
         url = urllib.parse.urljoin(url, kwargs['id'])
+    else:
+        url = urllib.parse.urljoin(url, 'latest')
     print(url)
-    pictures_urls = get_list_of_spacex_images(url)
-    print(pictures_urls)
+    pictures_urls = get_list_of_spacex_images_url(url)
     if len(pictures_urls) == 0:
         print('no image for download')
         return

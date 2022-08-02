@@ -1,11 +1,11 @@
 import os
 from glob import glob
 from pathlib import Path
-
 from random import choice
-from telegram import Update
-from telegram.ext import Updater, CallbackContext, CommandHandler
+
 from dotenv import load_dotenv
+from telegram import Update
+from telegram.ext import CallbackContext, CommandHandler, Updater
 
 
 def start(update: Update, context: CallbackContext):
