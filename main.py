@@ -19,7 +19,7 @@ def crete_dir(path):
 def parse_args():
     parser = argparse.ArgumentParser(description='script for download images from via spacex or NASA API')
     parser.add_argument('--source', required=True, choices=('spacex', 'nasa'), help='choose image source')
-    parser.add_argument('--launch_id', help='launch id')
+    parser.add_argument('--launch_id', help='spacex launch id, if blank download image from latest launch')
     args = parser.parse_args()
     return args
 
