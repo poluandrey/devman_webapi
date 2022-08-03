@@ -23,12 +23,10 @@ def get_list_of_spacex_images_url(url: str) -> List[str]:
 
 
 def fetch_spacex_launch(url: str, directory: Path, **kwargs) -> None:
-
     if 'id' in kwargs:
         url = urllib.parse.urljoin(url, kwargs['id'])
     else:
         url = urllib.parse.urljoin(url, 'latest')
-    print(url)
     pictures_urls = get_list_of_spacex_images_url(url)
     if len(pictures_urls) == 0:
         print('no image for download')
