@@ -4,8 +4,7 @@ from typing import List
 
 import requests
 
-from utils.download_image import download_image
-from utils.get_file_name_from_url import get_file_name_from_url
+from utils.utils import download_image, get_file_name_from_url
 
 
 def get_list_of_spacex_images_url(url: str) -> List[str]:
@@ -14,7 +13,6 @@ def get_list_of_spacex_images_url(url: str) -> List[str]:
     resp.raise_for_status()
 
     resp_json = resp.json()
-    print(resp_json)
     try:
         pictures = resp_json['links']['flickr']['original']
     except KeyError:

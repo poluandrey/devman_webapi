@@ -5,8 +5,10 @@ from pathlib import Path
 
 import dotenv
 
-from nasa_api.nasa_utils import download_epic_img, get_list_of_epic_img
+from nasa_api.nasa_utils import (download_epic_img, get_apod_url,
+                                 get_list_of_epic_img)
 from spacex_api.spacex_api import fetch_spacex_launch
+from utils.utils import download_image, get_file_name_from_url
 
 
 def crete_dir(path):
@@ -26,6 +28,11 @@ def parse_args():
         choices=('spacex', 'nasa'),
         help='choose image source')
     parser.add_argument(
+        '--nasa_img_type',
+        choices=('apod', 'epic'),
+        help='choose type of image for download'
+    )
+    parser.add_argument(
         '--launch_id',
         help='spacex launch id, if blank download image from latest launch')
     args = parser.parse_args()
@@ -40,13 +47,27 @@ def main():
 
     if args.source == 'nasa':
         nasa_base_url = 'https://api.nasa.gov'
-        imgs = get_list_of_epic_img(nasa_base_url, nasa_token)
-        download_epic_img(
-            url=nasa_base_url,
-            img_descr=imgs,
-            path=img_dir,
-            token=nasa_token
-        )
+        if args.nasa_img_type == 'epic':
+            imgs = get_list_of_epic_img(nasa_base_url, nasa_token)
+            download_epic_img(
+                url=nasa_base_url,
+                img_descr=imgs,
+                path=img_dir,
+                token=nasa_token
+            )
+        elif args.nasa_img_type == 'apod':
+            imgs = get_apod_url(url=nasa_base_url, api_key=nasa_token)
+            for url in imgs:
+                print(url)
+                download_image(
+                    url,
+                    img_dir,
+                    file_name=get_file_name_from_url(url),
+                    nasa_token=nasa_token
+                )
+        else:
+            print('please specify --nasa_img_type')
+
     else:
         spacex_url = 'https://api.spacexdata.com/v5/launches/'
         launch_id = args.launch_id

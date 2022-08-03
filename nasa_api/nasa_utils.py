@@ -1,13 +1,13 @@
-from datetime import date
 import posixpath
 import urllib.parse
 from collections import namedtuple
+from datetime import date
+from pathlib import Path
 from typing import List, NamedTuple
 
 import requests
 
-from utils.download_image import download_image
-
+from utils.utils import download_image, get_file_name_from_url
 
 EpicDescr = namedtuple('EpicDescr', ['identifier', 'image'])
 
@@ -50,6 +50,7 @@ def download_epic_img(url: str,
                       img_descr: List[EpicDescr], path) -> None:
     url = urllib.parse.urljoin(url, '/EPIC/archive/natural/')
     for img in img_descr:
+        # extruct /y/m/d from file name
         url_part = posixpath.join(img.identifier.strftime('%Y'),
                                   img.identifier.strftime('%m'),
                                   img.identifier.strftime('%d'),
@@ -62,3 +63,13 @@ def download_epic_img(url: str,
             path,
             file_name=f'{img.image}.png',
             nasa_token=token)
+
+
+def download_apod_img(urls: List[str], token: str, path: Path) -> None:
+    for url in urls:
+        download_image(
+            url,
+            path,
+            file_name=get_file_name_from_url(url),
+            nasa_token=token
+        )
