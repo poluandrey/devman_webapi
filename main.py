@@ -5,8 +5,8 @@ from pathlib import Path
 
 import dotenv
 
-from nasa_api.nasa_utils import (download_epic_img, get_apod_url,
-                                 get_list_of_epic_img)
+from nasa_api.nasa_utils import (download_epic_image, get_apod_url,
+                                 retrieve_epic_images)
 from spacex_api.spacex_api import fetch_spacex_launch
 from utils.utils import download_image, get_file_name_from_url
 
@@ -40,6 +40,7 @@ def parse_args():
 
 
 def main():
+    dotenv.load_dotenv()
     nasa_token = os.getenv('NASA_WEB_TOKEN')
     base_dir = Path(__file__).resolve().parent.parent
     img_dir = crete_dir(base_dir)
@@ -48,8 +49,8 @@ def main():
     if args.source == 'nasa':
         nasa_base_url = 'https://api.nasa.gov'
         if args.nasa_img_type == 'epic':
-            imgs = get_list_of_epic_img(nasa_base_url, nasa_token)
-            download_epic_img(
+            imgs = retrieve_epic_images(nasa_base_url, nasa_token)
+            download_epic_image(
                 url=nasa_base_url,
                 img_descr=imgs,
                 path=img_dir,
@@ -58,7 +59,6 @@ def main():
         elif args.nasa_img_type == 'apod':
             imgs = get_apod_url(url=nasa_base_url, api_key=nasa_token)
             for url in imgs:
-                print(url)
                 download_image(
                     url,
                     img_dir,
@@ -80,5 +80,4 @@ def main():
 
 
 if __name__ == '__main__':
-    dotenv.load_dotenv()
     main()

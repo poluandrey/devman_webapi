@@ -7,17 +7,17 @@ import requests
 from utils.utils import download_image, get_file_name_from_url
 
 
-def get_list_of_spacex_images_url(url: str) -> List[str]:
+def retrieve_spacex_images_url(url: str) -> List[str]:
     """get list of images url from launch"""
     resp = requests.get(url)
     resp.raise_for_status()
 
     resp_json = resp.json()
     try:
-        pictures = resp_json['links']['flickr']['original']
+        images = resp_json['links']['flickr']['original']
     except KeyError:
         raise Exception('internal error')
-    return pictures
+    return images
 
 
 def fetch_spacex_launch(url: str, directory: Path, **kwargs) -> None:
@@ -25,9 +25,9 @@ def fetch_spacex_launch(url: str, directory: Path, **kwargs) -> None:
         url = urllib.parse.urljoin(url, kwargs['id'])
     else:
         url = urllib.parse.urljoin(url, 'latest')
-    pictures_urls = get_list_of_spacex_images_url(url)
-    if len(pictures_urls) == 0:
+    images_urls = retrieve_spacex_images_url(url)
+    if len(images_urls) == 0:
         print('no image for download')
         return
-    for url in pictures_urls:
+    for url in images_urls:
         download_image(url, directory, file_name=get_file_name_from_url(url))
