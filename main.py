@@ -1,13 +1,11 @@
 import argparse
 import os.path
-import sys
 from pathlib import Path
 
 import dotenv
 
-from nasa_api.nasa_utils import (download_epic_image, get_apod_url,
-                                 retrieve_epic_images)
-from spacex_api.spacex_api import fetch_spacex_launch
+from nasa_api.nasa_utils import get_apod_urls, retrieve_epic_images, get_epic_image_info
+from spacex_api.spacex_api import retrieve_spacex_images_url
 from utils.utils import download_image, get_file_name_from_url
 
 
@@ -30,11 +28,14 @@ def parse_args():
     parser.add_argument(
         '--nasa_img_type',
         choices=('apod', 'epic'),
-        help='choose type of image for download'
+        help='choose type of image for download',
+        default='apod'
     )
     parser.add_argument(
         '--launch_id',
-        help='spacex launch id, if blank download image from latest launch')
+        help='spacex launch id, if blank download image from latest launch',
+        default=None
+    )
     args = parser.parse_args()
     return args
 
@@ -49,34 +50,42 @@ def main():
     if args.source == 'nasa':
         nasa_base_url = 'https://api.nasa.gov'
         if args.nasa_img_type == 'epic':
-            imgs = retrieve_epic_images(nasa_base_url, nasa_token)
-            download_epic_image(
-                url=nasa_base_url,
-                img_descr=imgs,
-                path=img_dir,
-                token=nasa_token
-            )
+            images = retrieve_epic_images(nasa_base_url, nasa_token)
+            epic_datas = get_epic_image_info(images, nasa_base_url)
+            for epic in epic_datas:
+                print(epic)
+                download_image(
+                    epic.image_url,
+                    img_dir,
+                    file_name=get_file_name_from_url(epic.image_url),
+                    nasa_token=nasa_token
+                )
         elif args.nasa_img_type == 'apod':
-            imgs = get_apod_url(url=nasa_base_url, api_key=nasa_token)
-            for url in imgs:
+            images = get_apod_urls(url=nasa_base_url, api_key=nasa_token)
+            for url in images:
                 download_image(
                     url,
                     img_dir,
                     file_name=get_file_name_from_url(url),
                     nasa_token=nasa_token
                 )
-        else:
-            print('please specify --nasa_img_type')
-
     else:
         spacex_url = 'https://api.spacexdata.com/v5/launches/'
         launch_id = args.launch_id
-        if launch_id is None:
-            fetch_spacex_launch(
-                spacex_url,
-                directory=img_dir)
-            sys.exit()
-        fetch_spacex_launch(spacex_url, directory=img_dir, id=launch_id)
+        try:
+            images = retrieve_spacex_images_url(url=spacex_url, launch_id=launch_id)
+        except KeyError:
+            print('image not found')
+            return
+        if not images:
+            print('no images for download')
+            return
+        for url in images:
+            download_image(
+                url,
+                img_dir,
+                file_name=get_file_name_from_url(url),
+            )
 
 
 if __name__ == '__main__':

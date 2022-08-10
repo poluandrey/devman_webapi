@@ -11,12 +11,8 @@ def get_file_name_from_url(url: str) -> str:
     return file_name
 
 
-def download_image(url: str, path, **kwargs) -> None:
+def download_image(url: str, path, file_name='image.png', **kwargs) -> None:
     params = {}
-    if 'file_name' in kwargs:
-        file_name = kwargs['file_name']
-    else:
-        file_name = 'image.png'
     if 'nasa_token' in kwargs:
         params['api_key'] = kwargs['nasa_token']
 

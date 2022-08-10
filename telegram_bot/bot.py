@@ -3,27 +3,30 @@ from glob import glob
 from pathlib import Path
 from random import choice
 
+
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import CallbackContext, CommandHandler, Updater
 
 
 def start(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=-1001365773650, text='hello!')
+    chat_id = os.getenv('TELEGRAM_CHAT_ID')
+    context.bot.send_message(chat_id=chat_id, text='hello!')
 
 
-def send_image(*args):
+def send_image(*args, **kwargs):
     if isinstance(args[0], Update) and isinstance(args[1], CallbackContext):
         update = args[0]
         context = args[1]
     elif isinstance(args[0], CallbackContext):
         context = args[0]
+    chat_id = os.getenv('TELEGRAM_CHAT_ID')
     base_dir = Path(__file__).resolve().parent.parent.parent
     img_dir = Path.joinpath(base_dir, 'images')
-    chat_id = -1001365773650
-    imgs = glob(f'{img_dir}/*jpg')
+    imgs = glob(f'{img_dir}/*[png|jpg]')
     img_for_send = choice(imgs)
-    context.bot.send_photo(chat_id=chat_id, photo=open(img_for_send, 'rb'))
+    with open(img_for_send, 'rb') as f:
+        context.bot.send_photo(chat_id=chat_id, photo=f)
 
 
 def main():
