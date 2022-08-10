@@ -53,7 +53,6 @@ def main():
             images = retrieve_epic_images(nasa_base_url, nasa_token)
             epic_datas = get_epic_image_info(images, nasa_base_url)
             for epic in epic_datas:
-                print(epic)
                 download_image(
                     epic.image_url,
                     img_dir,

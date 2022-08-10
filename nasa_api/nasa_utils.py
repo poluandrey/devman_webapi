@@ -36,7 +36,6 @@ def get_epic_image_info(data: Any, url: str) -> List[NamedTuple]:
     url = urllib.parse.urljoin(url, '/EPIC/archive/natural/')
     images = []
     for img in data:
-
         launch_date = img['identifier']
         img_date = date.fromisoformat(
             f'{launch_date[:4]}-{launch_date[4:6]}-{launch_date[6:8]}')
