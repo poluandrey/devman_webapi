@@ -1,11 +1,12 @@
 import argparse
 import os.path
+import urllib.parse
 from pathlib import Path
 
 import dotenv
+import requests
 
-from nasa_api.nasa_utils import get_apod_urls, retrieve_epic_images, get_epic_image_info
-from spacex_api.spacex_api import retrieve_spacex_images_url
+from nasa_api.nasa_utils import get_apod_urls, get_epic_info
 from utils.utils import download_image, get_file_name_from_url
 
 
@@ -34,7 +35,7 @@ def parse_args():
     parser.add_argument(
         '--launch_id',
         help='spacex launch id, if blank download image from latest launch',
-        default=None
+        default='latest'
     )
     args = parser.parse_args()
     return args
@@ -50,13 +51,20 @@ def main():
     if args.source == 'nasa':
         nasa_base_url = 'https://api.nasa.gov'
         if args.nasa_img_type == 'epic':
-            images = retrieve_epic_images(nasa_base_url, nasa_token)
-            epic_datas = get_epic_image_info(images, nasa_base_url)
-            for epic in epic_datas:
+            url = urllib.parse.urljoin(nasa_base_url, 'EPIC/api/natural')
+            params = {'api_key': nasa_token}
+            resp = requests.get(url, params=params)
+
+            resp.raise_for_status()
+
+            json_content = resp.json()
+
+            epics = get_epic_info(json_content, nasa_base_url)
+            for epic in epics:
                 download_image(
                     epic.image_url,
                     img_dir,
-                    file_name=get_file_name_from_url(epic.image_url),
+                    file_name=epic.filename,
                     nasa_token=nasa_token
                 )
         elif args.nasa_img_type == 'apod':
@@ -71,8 +79,14 @@ def main():
     else:
         spacex_url = 'https://api.spacexdata.com/v5/launches/'
         launch_id = args.launch_id
+
+        url = urllib.parse.urljoin(spacex_url, launch_id)
+        resp = requests.get(url)
+        resp.raise_for_status()
+
+        data = resp.json()
         try:
-            images = retrieve_spacex_images_url(url=spacex_url, launch_id=launch_id)
+            images = data['links']['flickr']['original']
         except KeyError:
             print('image not found')
             return

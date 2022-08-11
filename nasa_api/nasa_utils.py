@@ -3,10 +3,11 @@ import urllib.parse
 from collections import namedtuple
 from datetime import date
 from typing import List, NamedTuple, Any
+from utils.utils import get_file_name_from_url
 
 import requests
 
-EpicDescr = namedtuple('EpicDescr', ['image', 'image_url'])
+EpicDescr = namedtuple('EpicDescr', 'filename, image_url')
 
 
 def get_apod_urls(url: str, api_key, img_count=None) -> List[str]:
@@ -16,36 +17,27 @@ def get_apod_urls(url: str, api_key, img_count=None) -> List[str]:
     resp = requests.get(url, params=params)
     resp.raise_for_status()
 
-    data = resp.json()
-    if isinstance(data, List):
-        image_urls = [img['url'] for img in data]
+    apod_images = resp.json()
+    if isinstance(apod_images, List):
+        image_urls = [img['url'] for img in apod_images]
         return image_urls
-    return [data['url']]
+    return [apod_images['url']]
 
 
-def retrieve_epic_images(url: str, token: str) -> List[NamedTuple]:
-    url = urllib.parse.urljoin(url, 'EPIC/api/natural')
-    params = {'api_key': token}
-    resp = requests.get(url, params=params)
-
-    resp.raise_for_status()
-    return resp.json()
-
-
-def get_epic_image_info(data: Any, url: str) -> List[NamedTuple]:
+def get_epic_info(epic_images: Any, url: str) -> List[NamedTuple]:
     url = urllib.parse.urljoin(url, '/EPIC/archive/natural/')
     images = []
-    for img in data:
-        launch_date = img['identifier']
+    for img_url in epic_images:
+        launch_date = img_url['identifier']
         img_date = date.fromisoformat(
             f'{launch_date[:4]}-{launch_date[4:6]}-{launch_date[6:8]}')
         url_part = posixpath.join(img_date.strftime('%Y'),
                                   img_date.strftime('%m'),
                                   img_date.strftime('%d'),
                                   'png',
-                                  f'{img["image"]}.png')
+                                  f'{img_url["image"]}.png')
         img_url = urllib.parse.urljoin(url, url_part)
-        descr = EpicDescr(img['image'], img_url)
-        images.append(descr)
+        epic_descr = EpicDescr(get_file_name_from_url(img_url), img_url)
+        images.append(epic_descr)
 
     return images
