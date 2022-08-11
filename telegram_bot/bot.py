@@ -2,7 +2,7 @@ import os
 from glob import glob
 from pathlib import Path
 from random import choice
-
+from functools import partial
 
 from dotenv import load_dotenv
 from telegram import Update
@@ -14,13 +14,14 @@ def start(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=chat_id, text='hello!')
 
 
-def send_image(*args, **kwargs):
-    if isinstance(args[0], Update) and isinstance(args[1], CallbackContext):
-        update = args[0]
-        context = args[1]
-    elif isinstance(args[0], CallbackContext):
+def send_image(*args):
+    try:
+        chat_id = args[0]
+        update = args[1]
+        context = args[2]
+    except IndexError:
         context = args[0]
-    chat_id = os.getenv('TELEGRAM_CHAT_ID')
+        chat_id = context.job.context
     base_dir = Path(__file__).resolve().parent.parent.parent
     img_dir = Path.joinpath(base_dir, 'images')
     imgs = glob(f'{img_dir}/*[png|jpg]')
@@ -32,16 +33,19 @@ def send_image(*args, **kwargs):
 def main():
     load_dotenv()
     token = os.getenv('TELEGRAM_TOKEN')
+    chat_id = os.getenv('TELEGRAM_CHAT_ID')
+
     img_repeat_interval = int(os.getenv('IMAGE_SEND_REPEAT_INTERVAL', 14400))
     bot = Updater(token=token, use_context=True)
 
     dp = bot.dispatcher
+
     dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("space", send_image))
+    dp.add_handler(CommandHandler("space", partial(send_image, chat_id)))
 
     jq = bot.job_queue
 
-    jq.run_repeating(send_image, interval=img_repeat_interval)
+    jq.run_repeating(send_image, interval=img_repeat_interval, context=chat_id)
 
     bot.start_polling()
     bot.idle()
