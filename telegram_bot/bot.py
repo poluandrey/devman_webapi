@@ -1,8 +1,8 @@
 import os
+from functools import partial
 from glob import glob
 from pathlib import Path
 from random import choice
-from functools import partial
 
 from dotenv import load_dotenv
 from telegram import Update

@@ -2,10 +2,11 @@ import posixpath
 import urllib.parse
 from collections import namedtuple
 from datetime import date
-from typing import List, NamedTuple, Any
-from utils.utils import get_file_name_from_url
+from typing import Any, List, NamedTuple
 
 import requests
+
+from utils.utils import get_file_name_from_url
 
 EpicDescr = namedtuple('EpicDescr', 'filename, image_url')
 
